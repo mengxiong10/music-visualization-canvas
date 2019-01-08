@@ -1,0 +1,17 @@
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+
+# builds
+dist
+.rpt2_cache
+
+# misc
+.DS_Store
+.env
+.cache
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

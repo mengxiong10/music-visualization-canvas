@@ -1,0 +1,41 @@
+body {
+  height: 100%;
+}
+
+.music-svg {
+  fill: none;
+  stroke-dasharray: 100% 0%;
+  stroke-width: 10px;
+  stroke: url(#svg-gradient1);
+  animation: animation1 3s linear alternate both;
+}
+.music-svg:first-child {
+  transform: translate(8px, 16px);
+}
+.music-svg:nth-child(2) {
+  transform: translate(-8px, -0px);
+}
+
+.music-svg-wrapper {
+  animation: animation-rotate 4s linear 3s infinite;
+}
+
+@keyframes animation1 {
+  0% {
+    stroke-dasharray: 0 70%;
+  }
+  50% {
+    stroke-dasharray: 14% 14%;
+    stroke-dashoffset: 14%;
+  }
+  100% {
+    stroke-dasharray: 100% 0%;
+    stroke-dashoffset: 0%;
+  }
+}
+
+@keyframes animation-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
