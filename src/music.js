@@ -109,6 +109,8 @@ function createIptFile() {
 
 function createAudio() {
   audio = new Audio(music);
+  audio.preload = 'auto';
+  audio.volume = 0.8;
   audio.addEventListener('ended', autoNext);
 }
 
@@ -201,8 +203,9 @@ function draw() {
 }
 
 function start() {
-  audio.play();
-  draw();
+  audio.play().then(() => {
+    draw();
+  });
 }
 
 function stop() {

@@ -4,7 +4,7 @@
   "description": "music visualization",
   "main": "src/index.js",
   "scripts": {
-    "dev": "parcel ./src/index.html",
+    "dev": "parcel ./src/index.html --open",
     "build": "parcel build ./src/index.html --public-url ./ --out-dir dist --no-source-maps",
     "deploy": "rm -r dist && npm run build && gh-pages -d dist"
   },

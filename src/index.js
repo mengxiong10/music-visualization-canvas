@@ -1,8 +1,6 @@
 import './index.css';
 import { init, start } from './music';
 
-init();
-
 let play = false;
 
 document.getElementById('btn').addEventListener('click', () => {
@@ -10,5 +8,6 @@ document.getElementById('btn').addEventListener('click', () => {
     return;
   }
   play = true;
-  start();
+  init();
+  setTimeout(start, 3000);
 });
