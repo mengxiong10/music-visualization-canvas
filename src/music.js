@@ -67,7 +67,7 @@ function init() {
   const container = document.createElement('div');
   container.className = 'music-container';
   container.style.cssText =
-    'position: fixed; left: 0; bottom: 0; width: 100%; height: 100%;pointer-events: none;';
+    'position: fixed; left: 0; bottom: 0; width: 100%; height: 100%;';
 
   const canvas = createCanvas();
   const ipt = createIptFile();
@@ -77,6 +77,14 @@ function init() {
   container.insertAdjacentHTML('beforeend', svg);
 
   document.body.appendChild(container);
+
+  container.addEventListener('click', () => {
+    if (drawVisual) {
+      stop();
+    } else {
+      start();
+    }
+  });
   window.addEventListener('resize', throttle(getSize, 200));
   return container;
 }
@@ -147,32 +155,55 @@ function createCanvas() {
 
 function getPoints(cb) {
   let x = 0;
-  const sliceWidth = singleWidth / (bufferLength - 1);
-  for (let index = 0; index < bufferLength; index++) {
-    const v = dataArray[index] / 256;
+  const arr = dataArray.slice(0, -20);
+  const len = arr.length;
+  const sliceWidth = singleWidth / (len - 1);
+  for (let index = 0; index < len; index++) {
+    const v = arr[index] / 256;
     const y = (height / 2) * v + minHeight;
     cb(x, y);
     x += sliceWidth;
   }
 }
 
+// 画二次贝塞尔曲线
+
+let lastPointX;
+let lastPointY;
+function drawCurve(x, y) {
+  if (lastPointX !== undefined) {
+    canvasCtx.quadraticCurveTo(
+      lastPointX,
+      lastPointY,
+      (lastPointX + x) / 2,
+      (lastPointY + y) / 2
+    );
+  }
+  lastPointX = x;
+  lastPointY = y;
+}
+
 function drawGraph() {
   canvasCtx.beginPath();
   canvasCtx.moveTo(0, 0);
   canvasCtx.lineTo(0, minHeight);
+  lastPointX = undefined;
   getPoints((x, y) => {
-    canvasCtx.lineTo(x, y);
+    drawCurve(x, y);
   });
-  canvasCtx.lineTo(singleWidth, minHeight);
+  drawCurve(singleWidth, minHeight);
   canvasCtx.lineTo(singleWidth, 0);
   canvasCtx.fill();
 }
 
 function drawLine() {
   canvasCtx.beginPath();
+  canvasCtx.moveTo(0, 0);
+  lastPointX = undefined;
   getPoints((x, y) => {
-    canvasCtx.lineTo(x, 1.1 * y);
+    drawCurve(x, 1.1 * y);
   });
+  drawCurve(singleWidth, minHeight);
   canvasCtx.stroke();
 }
 
