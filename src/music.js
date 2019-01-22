@@ -122,7 +122,7 @@ class MusicVisualization {
     const sliceWidth = singleWidth / (len - 1);
     for (let index = 0; index < len; index++) {
       const v = arr[index] / 256;
-      const y = (height / 2) * v + minHeight;
+      const y = (height / 3) * v + minHeight;
       cb(x, y);
       x += sliceWidth;
     }
