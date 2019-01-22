@@ -1,13 +1,44 @@
 import './index.css';
-import { init, start } from './music';
+import MusicVisualization from './music';
 
-let play = false;
+const instance = new MusicVisualization();
 
-document.getElementById('btn').addEventListener('click', () => {
-  if (play) {
+const playBtn = document.getElementById('play');
+
+const fileElem = document.getElementById('fileElem');
+
+let status = 'loading';
+
+playBtn.textContent = '加载中…';
+
+instance.audio.addEventListener('canplay', () => {
+  play();
+});
+
+function play() {
+  instance.start();
+  status = 'play';
+  playBtn.textContent = '暂停';
+}
+
+function stop() {
+  instance.stop();
+  status = 'stop';
+  playBtn.textContent = '播放';
+}
+
+playBtn.addEventListener('click', () => {
+  if (status === 'loading') {
     return;
   }
-  play = true;
-  init();
-  setTimeout(start, 3000);
+  if (status === 'play') {
+    stop();
+  } else {
+    play();
+  }
+});
+
+fileElem.addEventListener('change', e => {
+  const files = e.target.files;
+  instance.changeMusic(files[0]);
 });
