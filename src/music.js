@@ -22,7 +22,6 @@ class MusicVisualization {
 
   init() {
     this.createAudio();
-    this.createAnalyser();
     this.createCanvas();
     const container = document.createElement('div');
     container.className = 'music-container';
@@ -48,6 +47,9 @@ class MusicVisualization {
     // playing
     if (!this.audio.paused && this.audio.duration > 0) {
       return;
+    }
+    if (!this.analyser) {
+      this.createAnalyser();
     }
     this.audio.play().then(() => {
       this.draw();
@@ -90,7 +92,6 @@ class MusicVisualization {
     source.connect(analyser);
     analyser.connect(audioCtx.destination);
     analyser.fftSize = 256;
-
     this.analyser = analyser;
   }
 
