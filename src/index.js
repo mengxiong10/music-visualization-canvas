@@ -12,7 +12,10 @@ let status = 'loading';
 playBtn.textContent = '加载中…';
 
 instance.audio.addEventListener('canplay', () => {
-  play();
+  if (status === 'loading') {
+    status = 'loaded';
+    playBtn.textContent = '播放';
+  }
 });
 
 function play() {
@@ -38,7 +41,7 @@ playBtn.addEventListener('click', () => {
   }
 });
 
-fileElem.addEventListener('change', e => {
+fileElem.addEventListener('change', (e) => {
   const files = e.target.files;
   instance.changeMusic(files[0]);
 });
