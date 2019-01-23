@@ -1,22 +1,27 @@
 import debounce from 'lodash/debounce';
-import defaultSrc from './Because Of You.m4a';
 
 class MusicVisualization {
-  constructor() {
+  constructor({
+    minHeight = 10,
+    width = window.innerWidth,
+    height = window.innerHeight,
+    gap = 0,
+    defaultSrc = ''
+  }) {
     this.audio = null;
     this.analyser = null;
     this.drawVisual = null;
+    this.objectUrl = null;
 
-    this.minHeight = 10; // 图像最小高度
+    this.minHeight = minHeight; // 图像最小高度
 
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
+    this.width = width;
+    this.height = height;
 
-    this.singleWidth = this.width / 2; // 单个图像宽度
+    this.singleWidth = width / 2 - gap; // 单个图像宽度
 
     this.defaultSrc = defaultSrc;
 
-    this.objectUrl = null;
     this.init();
   }
 
@@ -44,6 +49,9 @@ class MusicVisualization {
   }
 
   start() {
+    if (!this.audio.src) {
+      return;
+    }
     // playing
     if (!this.audio.paused && this.audio.duration > 0) {
       return;
