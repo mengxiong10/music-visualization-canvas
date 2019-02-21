@@ -1,9 +1,8 @@
 import './index.css';
 import MusicVisualization from './music';
+import defaultSrc from './canon.mp3';
 
 // const src1 = 'https://music.163.com/song/media/outer/url?id=19287485.mp3 ';
-const defaultSrc =
-  'https://m10.music.126.net/20190123101453/5fcf2f8faea027e0bebe0084649d6d0b/ymusic/6bdd/dfe1/235b/2eea628ccf6836eefb661ab6291714b5.mp3';
 
 const instance = new MusicVisualization({
   defaultSrc
