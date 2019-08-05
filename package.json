@@ -10,7 +10,7 @@
     "dev": "parcel ./src/index.html --open",
     "build:lib": "parcel ./lib/index.ts --out-dir lib --no-source-maps --no-hmr --no-cache --global MusicVisualization",
     "build": "parcel build ./src/index.html --public-url ./ --out-dir dist --no-source-maps",
-    "deploy": "rm -r dist && npm run build && gh-pages -d dist"
+    "deploy": "bash build/deploy.sh"
   },
   "keywords": [
     "music",
