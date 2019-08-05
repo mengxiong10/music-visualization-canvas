@@ -17,7 +17,8 @@
     "canvas"
   ],
   "author": "mengxiong10",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": "mengxiong10/music-visualization",
   "dependencies": {
     "lodash": "^4.17.11"
   },
