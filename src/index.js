@@ -1,54 +1,64 @@
 import MusicVisualization from '../lib/index.ts';
 import './index.css';
 
+// 播放按钮
 const playBtn = document.getElementById('play');
 
+// 换音乐按钮
 const fileElem = document.getElementById('fileElem');
 
-let status = 'loading';
+let btn = null;
 
-playBtn.textContent = '加载中…';
+// 切换状态
+const changeBtnState = value => {
+  btn = value;
+  playBtn.textContent = value.text;
+};
 
-const src =
-  'http://new-sound.iqing.com/play/7dc218c1-c75a-439e-99a7-35de2cca9ad8.aac';
-
-const instance = new MusicVisualization({
-  src,
-  onCanplay: () => {
-    if (status === 'loading') {
-      status = 'loaded';
-      playBtn.textContent = '播放';
+const btnState = {
+  loading: {
+    text: '加载中...',
+    click: () => {}
+  },
+  playing: {
+    text: '暂停',
+    click(mv) {
+      mv.stop();
     }
   },
-  onError: () => {
-    alert('加载资源失败, 请自行选择歌曲');
+  canPaly: {
+    text: '播放',
+    click(mv) {
+      mv.start();
+    }
+  }
+};
+
+changeBtnState(btnState.loading);
+
+const mv = new MusicVisualization({
+  src: 'http://new-sound.iqing.com/play/7dc218c1-c75a-439e-99a7-35de2cca9ad8.aac',
+  onPlay: () => {
+    changeBtnState(btnState.playing);
+  },
+  onStop: () => {
+    changeBtnState(btnState.canPaly);
+  },
+  audioEvents: {
+    canplay: () => {
+      changeBtnState(btnState.canPaly);
+    },
+    error: () => {
+      alert('加载资源失败, 请自行选择歌曲');
+    }
   }
 });
 
-function play() {
-  instance.start();
-  status = 'play';
-  playBtn.textContent = '暂停';
-}
-
-function stop() {
-  instance.stop();
-  status = 'stop';
-  playBtn.textContent = '播放';
-}
-
-playBtn.addEventListener('click', () => {
-  if (status === 'loading') {
-    return;
-  }
-  if (status === 'play') {
-    stop();
-  } else {
-    play();
-  }
+playBtn.addEventListener('click', function() {
+  btn.click(mv);
 });
 
-fileElem.addEventListener('change', e => {
-  const files = e.target.files;
-  instance.changeMusic(files[0]);
+fileElem.addEventListener('change', evt => {
+  const files = evt.target.files;
+  mv.changeMusic(files[0]);
 });

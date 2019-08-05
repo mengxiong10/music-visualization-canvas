@@ -7,8 +7,11 @@ export interface Options {
   src: string;
   minHeight?: number;
   gap?: number;
-  onCanplay?: (evt: MusicVisualization) => void;
-  onError?: () => void;
+  onPlay: () => void;
+  onStop: () => void;
+  audioEvents?: {
+    [key: string]: () => void;
+  };
 }
 
 class MusicVisualization {
@@ -45,11 +48,12 @@ class MusicVisualization {
     this.analyser = null;
     this.audio = this.createAudio();
 
-    this.hanldeCanPlay = this.hanldeCanPlay.bind(this);
-    this.handleError = this.handleError.bind(this);
+    if (this.options.audioEvents) {
+      Object.keys(this.options.audioEvents).forEach(key => {
+        this.audio.addEventListener(key, this.options.audioEvents[key]);
+      });
+    }
     this.handleResize = this.handleResize.bind(this);
-    this.audio.addEventListener('canplay', this.hanldeCanPlay);
-    this.audio.addEventListener('error', this.handleError);
     window.addEventListener('resize', this.handleResize);
   }
 
@@ -64,7 +68,10 @@ class MusicVisualization {
     if (!this.analyser) {
       this.analyser = this.createAnalyser(this.audio);
     }
-    this.audio.play().then(() => {
+    return this.audio.play().then(() => {
+      if (this.options.onPlay) {
+        this.options.onPlay();
+      }
       this.draw();
     });
   }
@@ -75,6 +82,9 @@ class MusicVisualization {
       this.drawRafId = null;
     }
     this.audio.pause();
+    if (this.options.onStop) {
+      this.options.onStop();
+    }
   }
 
   public destroy() {
@@ -83,9 +93,12 @@ class MusicVisualization {
       window.URL.revokeObjectURL(this.objectUrl);
       this.objectUrl = null;
     }
+    if (this.options.audioEvents) {
+      Object.keys(this.options.audioEvents).forEach(key => {
+        this.audio.removeEventListener(key, this.options.audioEvents[key]);
+      });
+    }
     window.removeEventListener('resize', this.handleResize);
-    this.audio.removeEventListener('canplay', this.hanldeCanPlay);
-    this.audio.removeEventListener('error', this.handleError);
     document.body.removeChild(this.container);
     this.container = null;
     this.audio = null;
@@ -100,18 +113,6 @@ class MusicVisualization {
     this.stop();
     this.audio.src = this.objectUrl;
     this.start();
-  }
-
-  private hanldeCanPlay() {
-    if (this.options.onCanplay) {
-      this.options.onCanplay(this);
-    }
-  }
-
-  private handleError() {
-    if (this.options.onError) {
-      this.options.onError();
-    }
   }
 
   private handleResize() {
@@ -252,7 +253,7 @@ class MusicVisualization {
     const { gap } = this.options;
     const singleWidth = this.width / 2 - gap;
     const bufferLength = analyser.frequencyBinCount - 5;
-    let dataArray = new Uint8Array(bufferLength).slice(0, -20);
+    const dataArray = new Uint8Array(bufferLength).slice(0, -20);
 
     analyser.getByteFrequencyData(dataArray);
 
