@@ -15,7 +15,7 @@ cd $directory &&
   git commit -m "Deploy updates" &&
   git push origin $branch
 
-
+cd ../
 git worktree remove $directory
 
 echo -e " Deploy success"
