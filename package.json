@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "music visualization",
   "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "dev": "parcel ./src/index.html --open",
     "build:lib": "parcel ./lib/index.ts --out-dir lib --no-source-maps --no-hmr --no-cache --global MusicVisualization",
