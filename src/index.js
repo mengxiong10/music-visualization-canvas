@@ -1,12 +1,5 @@
+import MusicVisualization from '../lib/index.ts';
 import './index.css';
-import MusicVisualization from './music';
-import defaultSrc from './canon.mp3';
-
-// const src1 = 'https://music.163.com/song/media/outer/url?id=19287485.mp3 ';
-
-const instance = new MusicVisualization({
-  defaultSrc
-});
 
 const playBtn = document.getElementById('play');
 
@@ -16,15 +9,18 @@ let status = 'loading';
 
 playBtn.textContent = '加载中…';
 
-instance.audio.addEventListener('canplay', () => {
-  if (status === 'loading') {
-    status = 'loaded';
-    playBtn.textContent = '播放';
-  }
-});
+const src =
+  'http://new-sound.iqing.com/play/7dc218c1-c75a-439e-99a7-35de2cca9ad8.aac';
 
-instance.audio.addEventListener('error', function() {
-  if (this.error.code) {
+const instance = new MusicVisualization({
+  src,
+  onCanplay: () => {
+    if (status === 'loading') {
+      status = 'loaded';
+      playBtn.textContent = '播放';
+    }
+  },
+  onError: () => {
     alert('加载资源失败, 请自行选择歌曲');
   }
 });
