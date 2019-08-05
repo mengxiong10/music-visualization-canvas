@@ -8,7 +8,7 @@ rm -rf $directory
 
 git worktree add $directory $branch
 
-npm run build
+npm run build:example
 
 cd $directory &&
   git add --all &&

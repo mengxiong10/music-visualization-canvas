@@ -7,21 +7,21 @@ export interface Options {
   src: string;
   minHeight?: number;
   gap?: number;
-  onPlay: () => void;
-  onStop: () => void;
+  onPlay?: () => void;
+  onStop?: () => void;
   audioEvents?: {
     [key: string]: () => void;
   };
 }
 
 class MusicVisualization {
-  options: Options;
+  options: Required<Options>;
   container: HTMLDivElement;
   audio: HTMLAudioElement;
-  analyser: AnalyserNode;
+  analyser: AnalyserNode | null;
   canvas: HTMLCanvasElement;
   canvasCtx: CanvasRenderingContext2D;
-  drawRafId: number;
+  drawRafId: number | null;
   objectUrl: string;
   width: number;
   height: number;
@@ -31,17 +31,20 @@ class MusicVisualization {
       src: '',
       gap: 0,
       minHeight: 10,
+      onPlay: () => {},
+      onStop: () => {},
+      audioEvents: {},
       ...options
     };
 
-    this.drawRafId = 0;
+    this.drawRafId = null;
     this.objectUrl = '';
 
     this.width = window.innerWidth;
     this.height = window.innerHeight;
 
     this.canvas = this.createCanvas(this.width, this.height);
-    this.canvasCtx = this.canvas.getContext('2d');
+    this.canvasCtx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
     this.container = this.createDomContainer(this.canvas);
     document.body.appendChild(this.container);
 
@@ -91,7 +94,6 @@ class MusicVisualization {
     this.stop();
     if (this.objectUrl) {
       window.URL.revokeObjectURL(this.objectUrl);
-      this.objectUrl = null;
     }
     if (this.options.audioEvents) {
       Object.keys(this.options.audioEvents).forEach(key => {
@@ -100,8 +102,6 @@ class MusicVisualization {
     }
     window.removeEventListener('resize', this.handleResize);
     document.body.removeChild(this.container);
-    this.container = null;
-    this.audio = null;
     this.analyser = null;
   }
 
@@ -249,6 +249,9 @@ class MusicVisualization {
   }
 
   private draw() {
+    if (!this.analyser) {
+      return;
+    }
     const { analyser, canvasCtx, width, height } = this;
     const { gap } = this.options;
     const singleWidth = this.width / 2 - gap;

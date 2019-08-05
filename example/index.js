@@ -1,4 +1,4 @@
-import MusicVisualization from '../lib/index.ts';
+import MusicVisualization from '../src/index';
 import './index.css';
 
 // 播放按钮
