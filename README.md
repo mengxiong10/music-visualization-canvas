@@ -4,4 +4,4 @@
 
 ## Demo
 
-<https://mengxiong10.github.io/music-visualization/>
+<https://mengxiong10.github.io/music-visualization-canvas/>
