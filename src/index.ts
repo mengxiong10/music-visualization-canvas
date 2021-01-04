@@ -3,15 +3,19 @@ declare const webkitAudioContext: {
   new (contextOptions?: AudioContextOptions): AudioContext;
 };
 
+type AudioEventMap = {
+  [K in keyof HTMLMediaElementEventMap]: (
+    this: HTMLAudioElement,
+    ev: HTMLMediaElementEventMap[K]
+  ) => any;
+};
+
 export interface Options {
   src: string;
+  el?: HTMLElement;
   minHeight?: number;
   gap?: number;
-  onPlay?: () => void;
-  onStop?: () => void;
-  audioEvents?: {
-    [key: string]: () => void;
-  };
+  audioEvents?: Partial<AudioEventMap>;
 }
 
 class MusicVisualization {
@@ -23,41 +27,42 @@ class MusicVisualization {
   canvasCtx: CanvasRenderingContext2D;
   drawRafId: number | null;
   objectUrl: string;
-  width: number;
-  height: number;
+  resizeObserver: ResizeObserver;
 
   constructor(options: Options) {
     this.options = {
-      src: '',
       gap: 0,
       minHeight: 10,
-      onPlay: () => {},
-      onStop: () => {},
+      el: document.body,
       audioEvents: {},
       ...options
     };
 
+    const { el } = this.options;
+
     this.drawRafId = null;
     this.objectUrl = '';
-
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-
-    this.canvas = this.createCanvas(this.width, this.height);
+    this.canvas = this.createCanvas();
     this.canvasCtx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
-    this.container = this.createDomContainer(this.canvas);
-    document.body.appendChild(this.container);
+    this.options.el.appendChild(this.canvas);
+
+    this.canvas.width = el.clientWidth;
+    this.canvas.height = el.clientHeight;
 
     this.analyser = null;
     this.audio = this.createAudio();
 
-    if (this.options.audioEvents) {
-      Object.keys(this.options.audioEvents).forEach(key => {
-        this.audio.addEventListener(key, this.options.audioEvents[key]);
-      });
-    }
-    this.handleResize = this.handleResize.bind(this);
-    window.addEventListener('resize', this.handleResize);
+    Object.keys(this.options.audioEvents).forEach((key) => {
+      this.audio.addEventListener(key, this.options.audioEvents[key]);
+    });
+
+    this.resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        this.canvas.width = entry.target.clientWidth;
+        this.canvas.height = entry.target.clientHeight;
+      }
+    });
+    this.resizeObserver.observe(el);
   }
 
   public start() {
@@ -68,13 +73,8 @@ class MusicVisualization {
     if (!this.audio.paused && this.audio.duration > 0) {
       return;
     }
-    if (!this.analyser) {
-      this.analyser = this.createAnalyser(this.audio);
-    }
+    this.createAnalyser();
     return this.audio.play().then(() => {
-      if (this.options.onPlay) {
-        this.options.onPlay();
-      }
       this.draw();
     });
   }
@@ -84,10 +84,7 @@ class MusicVisualization {
       window.cancelAnimationFrame(this.drawRafId);
       this.drawRafId = null;
     }
-    this.audio.pause();
-    if (this.options.onStop) {
-      this.options.onStop();
-    }
+    return this.audio.pause();
   }
 
   public destroy() {
@@ -95,13 +92,10 @@ class MusicVisualization {
     if (this.objectUrl) {
       window.URL.revokeObjectURL(this.objectUrl);
     }
-    if (this.options.audioEvents) {
-      Object.keys(this.options.audioEvents).forEach(key => {
-        this.audio.removeEventListener(key, this.options.audioEvents[key]);
-      });
-    }
-    window.removeEventListener('resize', this.handleResize);
-    document.body.removeChild(this.container);
+    Object.keys(this.options.audioEvents).forEach((key) => {
+      this.audio.removeEventListener(key, this.options.audioEvents[key]);
+    });
+    this.resizeObserver.unobserve(this.options.el);
     this.analyser = null;
   }
 
@@ -115,35 +109,13 @@ class MusicVisualization {
     this.start();
   }
 
-  private handleResize() {
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
-  }
-
-  /**
-   * 创建DOM
-   * @param canvas
-   */
-  private createDomContainer(canvas: HTMLCanvasElement) {
-    const container = document.createElement('div');
-    container.className = 'music-container';
-    container.style.cssText =
-      'position: fixed; left: 0; bottom: 0; width: 100%; height: 100%; pointer-events: none;';
-
-    container.appendChild(canvas);
-
-    return container;
-  }
-
   /**
    *  创建canvas
    */
-  private createCanvas(width: number, height: number) {
+  private createCanvas() {
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+    canvas.style.cssText =
+      'position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; pointer-events: none;';
     return canvas;
   }
 
@@ -164,14 +136,17 @@ class MusicVisualization {
    * 创建auido 分析器
    * @param audio
    */
-  private createAnalyser(audio: HTMLMediaElement) {
+  private createAnalyser() {
+    if (this.analyser) {
+      return;
+    }
     const audioCtx = new (AudioContext || webkitAudioContext)();
-    const source = audioCtx.createMediaElementSource(audio);
+    const source = audioCtx.createMediaElementSource(this.audio);
     const analyser = audioCtx.createAnalyser();
     source.connect(analyser);
     analyser.connect(audioCtx.destination);
     analyser.fftSize = 256;
-    return analyser;
+    this.analyser = analyser;
   }
 
   /**
@@ -193,7 +168,8 @@ class MusicVisualization {
     scaleY: number;
     arr: Uint8Array;
   }) {
-    const { height, canvasCtx } = this;
+    const { height } = this.canvas;
+    const { canvasCtx } = this;
     const { minHeight } = this.options;
     const len = arr.length;
     const sliceWidth = stopX / (len - 1);
@@ -215,7 +191,7 @@ class MusicVisualization {
   private drawGraph(arr: Uint8Array) {
     const { canvasCtx } = this;
     const { minHeight, gap } = this.options;
-    const singleWidth = this.width / 2 - gap;
+    const singleWidth = this.canvas.width / 2 - gap;
     canvasCtx.beginPath();
     canvasCtx.moveTo(0, 0);
     canvasCtx.lineTo(0, minHeight);
@@ -234,7 +210,7 @@ class MusicVisualization {
   private drawLine(arr: Uint8Array) {
     const { canvasCtx } = this;
     const { gap, minHeight } = this.options;
-    const singleWidth = this.width / 2 - gap;
+    const singleWidth = this.canvas.width / 2 - gap;
     canvasCtx.beginPath();
     canvasCtx.moveTo(0, 0);
     this.drawCurveLine({
@@ -252,9 +228,10 @@ class MusicVisualization {
     if (!this.analyser) {
       return;
     }
-    const { analyser, canvasCtx, width, height } = this;
+    const { width, height } = this.canvas;
     const { gap } = this.options;
-    const singleWidth = this.width / 2 - gap;
+    const { analyser, canvasCtx } = this;
+    const singleWidth = width / 2 - gap;
     const bufferLength = analyser.frequencyBinCount - 5;
     const dataArray = new Uint8Array(bufferLength).slice(0, -20);
 

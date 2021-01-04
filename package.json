@@ -11,9 +11,9 @@
     "src"
   ],
   "scripts": {
-    "dev": "parcel ./src/index.html --open",
+    "dev": "parcel ./example/index.html --open",
     "build": "rollup -c",
-    "build:example": "rm -rf dist/* && parcel build ./src/index.html --public-url ./ --out-dir dist --no-source-maps",
+    "build:example": "rm -rf dist/* && parcel build ./example/index.html --public-url ./ --out-dir dist --no-source-maps",
     "deploy": "bash build/deploy.sh",
     "release": "bash build/release.sh"
   },
@@ -27,6 +27,7 @@
   "devDependencies": {
     "@babel/core": "^7.2.2",
     "@babel/preset-env": "^7.2.3",
+    "@types/resize-observer-browser": "^0.1.4",
     "@typescript-eslint/eslint-plugin": "^1.5.0",
     "@typescript-eslint/parser": "^1.5.0",
     "cssnano": "^4.1.8",

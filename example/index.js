@@ -1,52 +1,52 @@
 import MusicVisualization from '../src/index';
+import canon from './canon.mp3';
 import './index.css';
 
 // 播放按钮
-const playBtn = document.getElementById('play');
-
+const btnPlay = document.getElementById('play');
 // 换音乐按钮
-const fileElem = document.getElementById('fileElem');
+const btnChangeFile = document.getElementById('fileElem');
 
-let btn = null;
+let state = 'loading'; // loading | 'playing' | 'pause';
 
-// 切换状态
-const changeBtnState = value => {
-  btn = value;
-  playBtn.textContent = value.text;
-};
-
-const btnState = {
+const stateMap = {
   loading: {
     text: '加载中...',
     click: () => {}
   },
   playing: {
     text: '暂停',
-    click(mv) {
-      mv.stop();
+    click(app) {
+      app.stop();
     }
   },
-  canPaly: {
+  pause: {
     text: '播放',
-    click(mv) {
-      mv.start();
+    click(app) {
+      app.start();
     }
   }
 };
 
-changeBtnState(btnState.loading);
+// 切换状态
+const changeState = (value) => {
+  state = value;
+  btnPlay.textContent = stateMap[state].text;
+};
+
+changeState('loading');
 
 const mv = new MusicVisualization({
-  src: 'http://new-sound.iqing.com/play/7dc218c1-c75a-439e-99a7-35de2cca9ad8.aac',
-  onPlay: () => {
-    changeBtnState(btnState.playing);
-  },
-  onStop: () => {
-    changeBtnState(btnState.canPaly);
-  },
+  src: canon,
   audioEvents: {
+    playing: () => {
+      changeState('playing');
+    },
+    pause: () => {
+      changeState('pause');
+    },
     canplay: () => {
-      changeBtnState(btnState.canPaly);
+      changeState('pause');
     },
     error: () => {
       alert('加载资源失败, 请自行选择歌曲');
@@ -54,11 +54,11 @@ const mv = new MusicVisualization({
   }
 });
 
-playBtn.addEventListener('click', function() {
-  btn.click(mv);
+btnPlay.addEventListener('click', function () {
+  stateMap[state].click(mv);
 });
 
-fileElem.addEventListener('change', evt => {
+btnChangeFile.addEventListener('change', (evt) => {
   const files = evt.target.files;
   mv.changeMusic(files[0]);
 });
